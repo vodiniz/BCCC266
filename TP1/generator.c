@@ -1,6 +1,7 @@
 #include "generator.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 Instruction* generateRandomInstructions(int ramSize) {
     // 01|22|13|45 => isto é uma instrução
@@ -66,8 +67,11 @@ Instruction* generateMultiplicationInstructions(int multiplier, int multiplying)
 }
 
 Instruction* generatePotentiationInstructions(int base, int exponent){
-    printf("malloc size: %d\n", (3 + (exponent) * base ));
-    Instruction* instructions = (Instruction*) malloc((3 + (exponent) * base ) * sizeof(Instruction));
+
+    int totalSums = (int) pow(base, exponent - 1); 
+
+    Instruction* instructions = (Instruction*) malloc((3 + totalSums ) * sizeof(Instruction));
+    printf("malloc size: %d\n", 3 + totalSums);
 
     //Três instruções extras
         //1 - Salvar o exponent na memória
@@ -81,22 +85,22 @@ Instruction* generatePotentiationInstructions(int base, int exponent){
     instructions[1].info1 = 0; //Coloca 0 (elemento neutro da soma)
     instructions[1].info2 = 1; //Posição da RAM
 
-    for(int i = 0; i < exponent; i++){
-        for(int j = 0; j < base; j++){
-            printf("instruction index[%d]\n",2+(i*base)+j);
-            instructions[2+(i*base)+j].opcode = 1; //Opcode para soma
-            instructions[2+(i*base)+j].info1 = 0; //Posição da base
-            instructions[2+(i*base)+j].info2 = 1; //Posição do resultado da potenciação
-            instructions[2+(i*base)+j].info3 = 1; //Posição do resultado da potenciação
-        }
+    for (int i = 0; i < totalSums; i++){
 
+        printf("Instructions[%d]\n", 2 + i);
+        instructions[2 + i].opcode = 1; //Opcode para soma
+        instructions[2 + i].info1 = 0; //Posição da base
+        instructions[2 + i].info2 = 1; //Posição do resultado da potenciação
+        instructions[2 + i].info3 = 1; //Posição do resultado da potenciação
     }
 
+
+
     //Inserindo a última instrução do programa que não faz nada que presta
-    instructions[2 + (exponent - 1 ) * base].opcode = -1;
-    instructions[2 + (exponent - 1 ) * base].info1 = -1;
-    instructions[2 + (exponent - 1 ) * base].info2 = -1;
-    instructions[2 + (exponent - 1 ) * base].info3 = -1;
+    instructions[2 + totalSums].opcode = -1;
+    instructions[2 + totalSums].info1 = -1;
+    instructions[2 + totalSums].info2 = -1;
+    instructions[2 + totalSums].info3 = -1;
 
     return instructions;
 }

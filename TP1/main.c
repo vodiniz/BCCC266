@@ -36,7 +36,7 @@ int main(int argc, char**argv) {
 
 
 
-    instructions = generatePotentiationInstructions(3, 3);
+    instructions = generatePotentiationInstructions(23, 4);
     start(&machine, instructions, ramSize);
 
 
