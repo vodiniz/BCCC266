@@ -1,11 +1,11 @@
 all: main.o cpu.o generator.o
-	@gcc main.o cpu.o generator.o -o exe -lm
+	@gcc main.o cpu.o generator.o -o exe -lm -g
 	rm -r *.o
 main.o: main.c
-	@gcc main.c -c -Wall
+	@gcc main.c -c -Wall -g
 cpu.o: cpu.c
-	@gcc cpu.c -c -Wall
+	@gcc cpu.c -c -Wall -g
 generator.o: generator.c
-	@gcc generator.c -c -Wall -lm
+	@gcc generator.c -c -Wall -lm -g
 run:
 	@./exe

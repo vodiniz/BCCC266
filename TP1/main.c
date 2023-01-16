@@ -36,7 +36,11 @@ int main(int argc, char**argv) {
 
 
 
-    instructions = generatePotentiationInstructions(23, 4);
+    // instructions = generatePotentiationInstructions2(3, 4);
+    instructions = generatePotentiationInstructions(3, 5);
+    // instructions = generateMultiplicationInstructions(3,9);
+    
+
     start(&machine, instructions, ramSize);
 
 

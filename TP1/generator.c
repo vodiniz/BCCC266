@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 Instruction* generateRandomInstructions(int ramSize) {
     // 01|22|13|45 => isto é uma instrução
@@ -52,9 +53,9 @@ Instruction* generateMultiplicationInstructions(int multiplier, int multiplying)
 
     for (int i = 0; i < multiplier; i++){
         instructions[i+2].opcode = 1; //Opcode para soma
-        instructions[i+2].info1 = 0; //Posição do multiplying
-        instructions[i+2].info2 = 1; //Posição do resultado da multiplicação
-        instructions[i+2].info3 = 1; //Posição do resultado da multiplicação
+        instructions[i+2].info1 = 0; //Posição do multiplying 
+        instructions[i+2].info2 = 1; //Posição do resultado da multiplicaçao
+        instructions[i+2].info3 = 1; //Posição do resultado da multiplicaçao
     }
 
     //Inserindo a última instrução do programa que não faz nada que presta
@@ -66,16 +67,109 @@ Instruction* generateMultiplicationInstructions(int multiplier, int multiplying)
     return instructions;
 }
 
+
+Instruction* generateDivisionInstructions(int dividend, int divisor){
+
+
+    Instruction* instructions = (Instruction*) malloc((4 + dividend/divisor) * sizeof(Instruction));
+
+    instructions[0].opcode = 0;
+    instructions[0].info1 = dividend; //Conteúdo a ser salvo na RAM
+    instructions[0].info2 = 0; //Posição da RAM
+    
+    instructions[1].opcode = 0;
+    instructions[1].info1 = divisor; //Conteúdo a ser salvo na RAM
+    instructions[1].info2 = 1; //Posição da RAM
+
+
+    int result = 0;
+
+    while ((result + 1) * divisor <= dividend){
+
+        instructions[result + 2].opcode = 2; //Opcode para subtração
+        instructions[result + 2].info1 = 0; //Posição do dividendo
+        instructions[result + 2].info2 = 1; //Posição do divisor
+        instructions[result + 2].info3 = 0; //Posição do resultado da divisão
+        result++;
+        }
+
+    instructions[result + 2].opcode = 0;
+    instructions[result + 2].info1 = result;
+    instructions[result + 2].info2 = 2;
+
+    instructions[result + 3].opcode = -1;
+    instructions[result + 3].info1 = -1;
+    instructions[result + 3].info2 = -1;
+    instructions[result + 3].info3 = -1;
+
+    return instructions;
+}
+
+Instruction* generateModInstructions(int dividend, int divisor){
+
+
+    Instruction* instructions = (Instruction*) malloc((4 + dividend/divisor) * sizeof(Instruction));
+
+    instructions[0].opcode = 0;
+    instructions[0].info1 = dividend; //Conteúdo a ser salvo na RAM
+    instructions[0].info2 = 0; //Posição da RAM
+    
+    instructions[1].opcode = 0;
+    instructions[1].info1 = divisor; //Conteúdo a ser salvo na RAM
+    instructions[1].info2 = 1; //Posição da RAM
+
+
+    int result = 0;
+
+    while ((result + 1) * divisor <= dividend){
+
+        instructions[result + 2].opcode = 2; //Opcode para subtração
+        instructions[result + 2].info1 = 0; //Posição do dividendo
+        instructions[result + 2].info2 = 1; //Posição do divisor
+        instructions[result + 2].info3 = 0; //Posição do resultado da divisão
+        result++;
+        }
+
+    printf("resultado final = %d\n", result);
+
+
+    instructions[result + 2].opcode = -1;
+    instructions[result + 2].info1 = -1;
+    instructions[result + 2].info2 = -1;
+    instructions[result + 2].info3 = -1;
+
+    return instructions;
+}
+
+
+
+
 Instruction* generatePotentiationInstructions(int base, int exponent){
 
-    int totalSums = (int) pow(base, exponent - 1); 
+    Instruction **instructionMatrix;
+    Instruction *instructions;
 
-    Instruction* instructions = (Instruction*) malloc((3 + totalSums ) * sizeof(Instruction));
-    printf("malloc size: %d\n", 3 + totalSums);
 
-    //Três instruções extras
-        //1 - Salvar o exponent na memória
-        //2- Colocando 0 na posição no resultado na RAM
+    instructionMatrix = (Instruction**) malloc( (exponent - 1) * sizeof(Instruction));
+
+
+    for ( int i = 0; i < exponent - 1; i++){
+
+        if (!i){
+            instructionMatrix[i] = generateMultiplicationInstructions(base, base);
+        } else {
+            instructionMatrix[i] = generateMultiplicationInstructions(base , 0);
+        }
+    }
+
+    for (int i = 0; i < exponent -1;i++){
+        for ( int j = 0; j <3 + base; j++){
+            printf("%d   ",instructionMatrix[i][j].opcode);
+        }
+        printf("\n");
+    }
+
+    instructions = (Instruction*) malloc((4 + base * (exponent - 1) + 2 * (exponent - 2))  * sizeof(Instruction)); // ALOCAÇÃO TÁ UM POUQUINHO ERRADA. CONFERIR
 
     instructions[0].opcode = 0;
     instructions[0].info1 = base; //Conteúdo a ser salvo na RAM
@@ -85,25 +179,53 @@ Instruction* generatePotentiationInstructions(int base, int exponent){
     instructions[1].info1 = 0; //Coloca 0 (elemento neutro da soma)
     instructions[1].info2 = 1; //Posição da RAM
 
-    for (int i = 0; i < totalSums; i++){
 
-        printf("Instructions[%d]\n", 2 + i);
-        instructions[2 + i].opcode = 1; //Opcode para soma
-        instructions[2 + i].info1 = 0; //Posição da base
-        instructions[2 + i].info2 = 1; //Posição do resultado da potenciação
-        instructions[2 + i].info3 = 1; //Posição do resultado da potenciação
+    int index_counter = 2;
+    for (int i = 0; i < exponent -1;i++){
+
+        for ( int j = 2; j < 3 + base - 1; j++){
+
+            instructions[index_counter].opcode = instructionMatrix[i][j].opcode;
+            instructions[index_counter].info1 = instructionMatrix[i][j].info1; 
+            instructions[index_counter].info2 = instructionMatrix[i][j].info2; 
+            instructions[index_counter].info3 = instructionMatrix[i][j].info3; 
+            index_counter++;
+
+        }
+
+        instructions[index_counter].opcode = 3;
+        instructions[index_counter].info1 = 1; 
+        instructions[index_counter].info2 = 0; 
+        index_counter++;
+
+        instructions[index_counter].opcode = 0;
+        instructions[index_counter].info1 = 0; 
+        instructions[index_counter].info2 = 1; 
+        index_counter++;
+
     }
 
 
+    instructions[index_counter - 2].opcode = -1;
+    instructions[index_counter - 2].info1 = -1;
+    instructions[index_counter - 2].info2 = -1;
+    instructions[index_counter - 2].info3 = -1;
 
-    //Inserindo a última instrução do programa que não faz nada que presta
-    instructions[2 + totalSums].opcode = -1;
-    instructions[2 + totalSums].info1 = -1;
-    instructions[2 + totalSums].info2 = -1;
-    instructions[2 + totalSums].info3 = -1;
+
+
+    printf(" VETORZÃO\n");
+
+    for( int i = 0; i < 4 + base * (exponent - 1) + 2 * (exponent - 2); i++){
+        printf("%d  ", instructions[i].opcode);
+    }
+    printf("\n");
 
     return instructions;
 }
+
+
+
+
 
 Instruction* readInstructions(char* fileName, int* ramSize) {
     printf("FILE -> %s\n", fileName);

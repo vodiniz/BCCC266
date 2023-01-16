@@ -63,20 +63,26 @@ void run(Machine* machine) {
                                 address1, RAMContent1, address2, RAMContent2, address3, result);
                 break;
 
-            case 3: //multiplicando
+            case 3: //Copiando informação da RAM
 
-                address1 = instruction.info1;
-                address2 = instruction.info2;
+                address1 = instruction.info1;       //origem
+                address2 = instruction.info2;       //destino
+
                 RAMContent1 = machine->RAM.items[address1];
                 RAMContent2 = machine->RAM.items[address2];
 
-                
+                machine->RAM.items[address2] = machine->RAM.items[address1];
+
+                printf("  > Copiando RAM[%d] (%f) para RAM[%d] (%f).\n",
+                 address1, RAMContent1, address2, RAMContent2);
 
                 break;
         }
         PC++;
     }
 }
+
+
 
 void printRAM(Machine* machine) {
     printf("  > RAM");
