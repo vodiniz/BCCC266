@@ -23,7 +23,7 @@ int main(int argc, char**argv) {
 
     if (strcmp(argv[1], "random") == 0) {
         ramSize = atoi(argv[2]);
-        instructions = generateRandomInstructions(ramSize);
+        // instructions = generateRandomInstructions(ramSize);
     } else if (strcmp(argv[1], "file") == 0) {
         instructions = readInstructions(argv[2], &ramSize);
     } 
@@ -39,6 +39,7 @@ int main(int argc, char**argv) {
     // instructions = generatePotentiationInstructions2(3, 4);
     instructions = generatePotentiationInstructions(3, 5);
     // instructions = generateMultiplicationInstructions(3,9);
+    // instructions = generateDivisionInstructions(10,3);
     
 
     start(&machine, instructions, ramSize);
