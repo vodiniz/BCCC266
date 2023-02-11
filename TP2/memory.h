@@ -21,6 +21,8 @@ typedef struct {
     bool updated;
     int cost; // custo de acesso a CACHE/RAM
     int cacheHit; // ACHOU INFORMAÇÃO NA CACHE
+    int timesUsed;
+    int timeOnCache;
 } Line;
 
 typedef struct {

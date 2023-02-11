@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.tcc": "c",
+        "fstream": "c",
+        "optional": "c",
+        "type_traits": "c",
+        "constants.h": "c"
+    }
+}

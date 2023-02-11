@@ -28,7 +28,7 @@ Instruction* generateRandomInstructions(int ramSize) {
     
     return instructions;
 }
-
+ 
 Instruction* readInstructions(char* fileName, int* memoriesSize) {
     Instruction* instructions = NULL;
 

@@ -12,12 +12,16 @@ void start(Machine* machine, Instruction* instructions, int* memoriesSize) {
     startRAM(&machine->ram, memoriesSize[0]);
     startCache(&machine->l1, memoriesSize[1]);
     startCache(&machine->l2, memoriesSize[2]);
+    startCache(&machine->l3, memoriesSize[3]);
+
     machine->instructions = instructions;
     machine->hitL1 = 0;
     machine->hitL2 = 0;
+    machine->hitL3 = 0;
     machine->hitRAM = 0;
     machine->missL1 = 0;
     machine->missL2 = 0;
+    machine->missL3 = 0;
     machine->totalCost = 0;
 }
 
@@ -26,6 +30,8 @@ void stop(Machine* machine) {
     stopRAM(&machine->ram);
     stopCache(&machine->l1);
     stopCache(&machine->l2);
+    stopCache(&machine->l3);
+
 }
 
 void executeInstruction(Machine* machine, int PC) {
@@ -126,9 +132,10 @@ void run(Machine* machine) {
     int PC = 0; // Program Counter
     while(machine->instructions[PC].opcode != -1) {
         executeInstruction(machine, PC++);
-        printf("\tL1:(%6d, %6d) | L2:(%6d, %6d) | RAM:(%6d) | COST: %d\n", 
+        printf("\tL1:(%6d, %6d) | L2:(%6d, %6d) | L3:(%6d, %6d) | RAM:(%6d) | COST: %d\n", 
             machine->hitL1, machine->missL1, 
-            machine->hitL2, machine->missL2, 
+            machine->hitL2, machine->missL2,
+            machine->hitL3, machine->missL3,
             machine->hitRAM,
              machine->totalCost);
     }
@@ -150,23 +157,35 @@ void printcolored(int n, bool updated) {
 void printMemories(Machine* machine) {
     printf("\x1b[0;30;47m     ");
     printc("RAM", WORDS_SIZE * 8 - 1);
+    printc("Cache L3", WORDS_SIZE * 8 + 6);
     printc("Cache L2", WORDS_SIZE * 8 + 6);
     printc("Cache L1", WORDS_SIZE * 8 + 6);
     printf("\x1b[0m\n");
+
+
+
     for (int i=0;i<machine->ram.size;i++) {
         printf("\x1b[0;30;47m%5d|\x1b[0m", i);
         for (int j=0;j<WORDS_SIZE;j++)
             printf(" %5d |", machine->ram.blocks[i].words[j]);
-        if (i < machine->l2.size) {
+
+        if (i < machine->l3.size) {
             printf("|");
-            printcolored(machine->l2.lines[i].tag, machine->l2.lines[i].updated);
+            printcolored(machine->l3.lines[i].tag, machine->l3.lines[i].updated);
             for (int j=0;j<WORDS_SIZE;j++)
-                printf(" %5d |", machine->l2.lines[i].block.words[j]);
-            if (i < machine->l1.size) {
+                    printf(" %5d |", machine->l3.lines[i].block.words[j]);
+
+            if (i < machine->l2.size) {
                 printf("|");
-                printcolored(machine->l1.lines[i].tag, machine->l1.lines[i].updated);
+                printcolored(machine->l2.lines[i].tag, machine->l2.lines[i].updated);
                 for (int j=0;j<WORDS_SIZE;j++)
-                    printf(" %5d |", machine->l1.lines[i].block.words[j]);
+                    printf(" %5d |", machine->l2.lines[i].block.words[j]);
+                if (i < machine->l1.size) {
+                    printf("|");
+                    printcolored(machine->l1.lines[i].tag, machine->l1.lines[i].updated);
+                    for (int j=0;j<WORDS_SIZE;j++)
+                        printf(" %5d |", machine->l1.lines[i].block.words[j]);
+                }
             }
         }
         printf("\n");

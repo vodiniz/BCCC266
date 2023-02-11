@@ -25,8 +25,11 @@ void startCache(Cache* cache, int size) {
     cache->size = size;
 
     // INICIA A CACHE COM UM VALOR INVÁLIDO ( -1)
-    for (int i=0;i<size;i++)
+    for (int i=0;i<size;i++){
         cache->lines[i].tag = INVALID_ADD;
+        cache->lines[i].timeOnCache = 0;
+        cache->lines[i].timesUsed = 0;
+    }
 }
 
 

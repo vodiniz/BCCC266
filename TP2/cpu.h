@@ -9,8 +9,9 @@ typedef struct {
     RAM ram;
     Cache l1; // cache L1
     Cache l2; // cache L2
-    int hitL1, hitL2, hit3, hitRAM;
-    int missL1, missL2, missl3;
+    Cache l3; // cache L3
+    int hitL1, hitL2, hitL3, hitRAM;
+    int missL1, missL2, missL3;
     int totalCost;
 } Machine;
 
