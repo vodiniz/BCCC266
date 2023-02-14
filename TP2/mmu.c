@@ -23,7 +23,7 @@ int memoryCacheMapping(int address, Cache* cache) {
         case 2:
             for( int i = 1; i < cache->size; i++){
 
-                cache->lines[i].tag++;
+                cache->lines[i].timeOnCache++;
 
                 if(cache->lines[i].timeOnCache > cache->lines[index].timeOnCache)
                     index = i;
@@ -36,7 +36,6 @@ int memoryCacheMapping(int address, Cache* cache) {
             for( int i = 1; i < cache->size; i++)
                 if(cache->lines[i].timesUsed < cache->lines[index].timesUsed)
                     index = i;
-            cache->lines[index].tag++;
             return index;
             break;
     }
@@ -68,6 +67,9 @@ void updateMachineInfos(Machine* machine, Line* line) {
             machine->missL3 += 1;
             break;
     }
+
+    line->timesUsed++;
+
     machine->totalCost += line->cost;
 }
 
@@ -115,6 +117,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
 
     } else { 
         /* Block only in memory RAM, need to bring it to cache and manipulate the blocks */
+        //fazer o mapeamento para decidir quem tirar da ram.
         l2pos = memoryCacheMapping(cache1[l1pos].tag, &machine->l2); /* Need to check the position of the block that will leave the L1 */
         l3pos = memoryCacheMapping(cache2[l2pos].tag, &machine->l3); /* Need to check the position of the block that will leave the L1 */
 
@@ -139,7 +142,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
         cache1[l1pos].tag = add.block;
         cache1[l1pos].updated = false;
         cache1[l1pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3 + COST_ACCESS_RAM;
-        cache1[l1pos].timeOnCache = 0; 
+        cache1[l1pos].timeOnCache = 0;
         cache1[l1pos].cacheHit = 4;
     }
     updateMachineInfos(machine, &(cache1[l1pos]));

@@ -11,7 +11,7 @@
 // 2  LRU (Least Recently Used)
 // 3  LFU (Least Frequently Used)
 
-#define SUBSTITUTION_METHOD 1
+#define SUBSTITUTION_METHOD 3
 
 // #define PRINT_INTERMEDIATE_RAM
-// #define PRINT_LOG
+#define PRINT_LOG
