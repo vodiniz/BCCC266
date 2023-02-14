@@ -1,7 +1,6 @@
 #include "generator.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 Instruction* generateRandomInstructions(int ramSize) {
@@ -187,16 +186,6 @@ Instruction* generatePotentiationInstructions(int base, int exponent){
     }
 
 
-    // simples loop para imprimir os opcode da matriz para finalidade de teste.
-    // for (int i = 0; i < exponent -1;i++){
-    //     for ( int j = 0; j <3 + base; j++){
-    //         printf("%d   ",instructionMatrix[i][j].opcode);
-    //     }
-    //     printf("\n");
-    // }
-
-
-
     // alocação das instruções finais que serão retornadas no fim da função.
     // a alocação se dá por 
     //4 + base * (exponent - 1) + 2 * (exponent - 2))  * sizeof(Instruction))
@@ -206,8 +195,6 @@ Instruction* generatePotentiationInstructions(int base, int exponent){
     // essas serão as quantidades de somas necessárias
     // 2 * ( exponent - 2 ) serão o números de operações auxiliares ( opcode 3 e 0) para a manipulaçao necessária da Ram
 
-
-    // printf("tamanho do malloc: %d\n", 3 + base * (exponent - 1) + 2 * (exponent - 2));
 
     instructions = (Instruction*) malloc((3 + base * (exponent - 1) + 2 * (exponent - 2))  * sizeof(Instruction)); // ALOCAÇÃO TÁ UM POUQUINHO ERRADA. CONFERIR
 
@@ -261,15 +248,6 @@ Instruction* generatePotentiationInstructions(int base, int exponent){
     instructions[index_counter].info1 = -1;
     instructions[index_counter].info2 = -1;
     instructions[index_counter].info3 = -1;
-
-
-    //imprimindo o opcode das instruções finais para motivo de teste
-    // printf(" Instruções Finais\n");
-
-    // for( int i = 0; i < 5000; i++){
-    //     printf("%d  ", instructions[i].opcode);
-    // }
-    // printf("\n");
 
 
     for (int i = 0; i < exponent - 1; i++){
