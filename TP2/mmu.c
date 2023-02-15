@@ -21,12 +21,14 @@ int memoryCacheMapping(int address, Cache* cache) {
             break;
         //LRU METHOD (Least Recently Used)
         case 2:
+            cache->lines[0].timeOnCache++;
             for( int i = 1; i < cache->size; i++){
-
+                
                 cache->lines[i].timeOnCache++;
 
                 if(cache->lines[i].timeOnCache > cache->lines[index].timeOnCache)
                     index = i;
+
             }
             return index;
             break;
@@ -44,6 +46,8 @@ int memoryCacheMapping(int address, Cache* cache) {
 }
 
 void updateMachineInfos(Machine* machine, Line* line) {
+
+
     switch (line->cacheHit) {
         case 1:
             machine->hitL1 += 1;
@@ -68,6 +72,7 @@ void updateMachineInfos(Machine* machine, Line* line) {
             break;
     }
 
+    line->timeOnCache = 0;
     line->timesUsed++;
 
     machine->totalCost += line->cost;
@@ -103,8 +108,8 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
         cache2[l2pos].updated = false;
         cache2[l2pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2;
         cache2[l2pos].cacheHit = 2;
-        // !Can be improved?
         updateMachineInfos(machine, &(cache2[l2pos]));
+
         return &(cache2[l2pos]);
     } else if (cache3[l3pos].tag == add.block){
         /* Block is in memory cache L3 */
@@ -112,6 +117,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
         cache3[l3pos].updated = false;
         cache3[l3pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3;
         cache3[l3pos].cacheHit = 3;
+
         updateMachineInfos(machine, &(cache3[l3pos]));
         return &(cache3[l3pos]);
 
@@ -131,10 +137,14 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
                     RAM[cache3[l3pos].tag] = cache3[l3pos].block;
                 }
                 cache3[l3pos] = cache2[l2pos];
+                cache3[l3pos].timeOnCache = 0;
+
 
             }
 
             cache2[l2pos] = cache1[l1pos];
+            cache3[l2pos].timeOnCache = 0;
+
         }
 
         
@@ -142,8 +152,11 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
         cache1[l1pos].tag = add.block;
         cache1[l1pos].updated = false;
         cache1[l1pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3 + COST_ACCESS_RAM;
-        cache1[l1pos].timeOnCache = 0;
+
+        //se passa da l1 para a l2 eu deveria zerar ?
         cache1[l1pos].cacheHit = 4;
+
+
     }
     updateMachineInfos(machine, &(cache1[l1pos]));
     return &(cache1[l1pos]);
