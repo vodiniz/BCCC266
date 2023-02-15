@@ -143,7 +143,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
             }
 
             cache2[l2pos] = cache1[l1pos];
-            cache3[l2pos].timeOnCache = 0;
+            cache2[l2pos].timeOnCache = 0;
 
         }
 
@@ -152,8 +152,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
         cache1[l1pos].tag = add.block;
         cache1[l1pos].updated = false;
         cache1[l1pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3 + COST_ACCESS_RAM;
-
-        //se passa da l1 para a l2 eu deveria zerar ?
+        cache1[l1pos].timeOnCache = 0;
         cache1[l1pos].cacheHit = 4;
 
 
