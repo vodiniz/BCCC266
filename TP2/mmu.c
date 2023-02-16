@@ -22,7 +22,7 @@ int memoryCacheMapping(int address, Cache* cache) {
         //LRU METHOD (Least Recently Used)
         case 2:
             cache->lines[0].timeOnCache++;
-            for( int i = 1; i < cache->size; i++){
+            for( int i = 0; i < cache->size; i++){
                 
                 cache->lines[i].timeOnCache++;
 
@@ -38,7 +38,7 @@ int memoryCacheMapping(int address, Cache* cache) {
 
         //LFU METHOD (Least Frequently Used)
         case 3:
-            for( int i = 1; i < cache->size; i++){
+            for( int i = 0; i < cache->size; i++){
                 if(cache->lines[i].timesUsed < cache->lines[index].timesUsed)
                     index = i;
 
