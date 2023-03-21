@@ -6,8 +6,6 @@
 #define COST_ACCESS_L2 10
 #define COST_ACCESS_L3 100
 #define COST_ACCESS_RAM 1000
-#define COST_ACCESS_HD 10000
-
 
 // 1 MAPEAMENTO DIRETO
 // 2  LRU (Least Recently Used)
@@ -17,3 +15,6 @@
 
 // #define PRINT_INTERMEDIATE_RAM
 // #define PRINT_LOG
+
+
+#define FILE_STR_TAM 100

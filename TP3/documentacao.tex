@@ -1,0 +1,609 @@
+\documentclass{article}
+
+\input{setup}
+
+\begin{document}
+
+\CAPA{Trabalho Prático III}{BCC266 - Organização de Computadores}{Vitor Oliveira Diniz}{Jéssica Machado}{}{Pedro Silva}
+
+
+
+\section{Introdução}
+O HD  é um dispositivo de armazenamento de dados que armazena e recupera dados digitais usando armazenamento magnético. Os dados são acessados de maneira aleatória, o que significa wue blocos individuais de de dados que podem ser armazenados e recuperados em qualquer ordem, além de
+ser um armazenamento que retém os dados mesmo quando a máquina é desligada.
+\subsection{Especificações do problema}
+
+Para este trabalho prático, deveríamos, a partir do TP2 que já realizado, implementar o HD se caso palavra de um bloco de memória não for encontrada na RAM, portanto a memória
+externa vai ser considerada como último nível. Além disso deveriamos adicionar um tratador de interrupções, que verificaria se
+há alguma interrupção a ser tratada e deve parar a execução do código atual para tratar a mesma. 
+
+\subsection{Considerações Iniciais}
+Algumas ferramentas foram utilizadas durante a criação deste projeto:
+
+\begin{itemize}
+  \item Ambiente de desenvolvimento do código fonte: Visual Studio Code.
+  \item Linguagem utilizada: C.
+  \item Ambiente de desenvolvimento da documentação: Visual Studio Code \LaTeX Workshop.
+\end{itemize}
+
+\subsection{Ferramentas utilizadas}
+Algumas ferramentas foram utilizadas para testar a implementação, como:
+
+\begin{itemize}
+    \item[-] \textit{CLANG}: ferramentas de análise estática do código.
+    \item[-] \textit{Valgrind}: ferramentas de análise dinâmica do código.
+\end{itemize}
+
+\subsection{Especificações da máquina}
+A máquina onde o desenvolvimento e os testes foram realizados possui a seguinte configuração:
+
+\begin{itemize}
+    \item[-] Processador: Ryzen 7-5800H.
+    \item[-] Memória RAM: 16 Gb.
+    \item[-] Sistema Operacional: Arch Linux x86\_64.
+\end{itemize}
+
+
+\subsection{Instruções de compilação e execução}
+
+Para a compilação do projeto, basta digitar:
+
+\begin{tcolorbox}[title=Compilando o projeto,width=\linewidth]
+    gcc main.c -c -Wall \newline
+    gcc mmu.c -c -Wall \newline
+    gcc memory.c -c -Wall\newline
+    gcc instruction.c -c -Wall\newline
+    gcc cpu.c -c -Wallnewline
+    gcc generator.c -c -Wall\newline
+    gcc main.o mmu.o memory.o instruction.o cpu.o generator.o -o exe -g
+\end{tcolorbox}
+
+Usou-se para a compilação as seguintes opções:
+
+\begin{itemize}
+    \item [-] \emph{-Wall}: para mostrar todos os possível \emph{warnings} do código.
+    \item [-] \emph{-c}: Para compilar o arquivo sem linkar os arquivos para obtermos um arquivo do tipo objeto.
+    \item [-] \emph{-o}: Compilar para um arquivo do tipo output $($saída$)$.
+\end{itemize}
+
+Para a execução do programa basta digitar um dos exemplos:
+\begin{tcolorbox}[title=,width=\linewidth]
+    ./exe random [TAMANHO DA RAM] [L1] [L2] [L3] [TAMANHO DO HD]\newline
+
+
+\end{tcolorbox}
+
+
+\clearpage
+
+
+
+\section{Desenvolvimento}
+
+Seguindo as boas práticas de programação, implementamos o HD particionada em blocos e simulamos o mapeamento associativo para a troca das mesmas com a memória RAM. Usamos as políticas LFU (Last Frequently Used) e LRU (Last Recently Used) como métodos de otimização.
+
+
+
+\subsection{Operações}
+
+A seguir entraremos em detalhe sobre as principais funções utilizadas no programa e as coisas que implementamos.
+
+\subsubsection{Médodos de mapeamento}
+
+Define o tipo de método que vai ser usado para a saída dos resultados.
+
+\begin{lstlisting}[caption={Definição do tipo de método},label={lst:cod1},language=C]
+
+    // 1 MAPEAMENTO DIRETO
+    // 2  LRU (Least Recently Used)
+    // 3  LFU (Least Frequently Used)
+
+    #define SUBSTITUTION_METHOD 3
+    
+\end{lstlisting}
+
+\subsubsection{TAD File e TAD HD}
+
+Criamos um TAD File que salva o nome do arquivo na variável fileName, e uma variável file do tipo FILE. E no TAD HD criamos o int size para receber o tamanho do hd
+e um vetor de Files.
+
+\begin{lstlisting}[caption={TAD Machine},label={lst:cod2},language=C]
+
+typedef struct {
+    char fileName[FILE_STR_TAM]; //salvar o nome do arquivo
+    FILE *file;    
+} File;
+    
+typedef struct {
+    int size;
+    File *files; //arquivos
+} HD;
+
+\end{lstlisting}
+
+\subsubsection{TAD Machine}
+
+Adicionamos o HD hd, hitRAM e o hitHd (que conta quantas vezes processador achou o dado na ram e no HD) e o missRam (que conta quantas vezes o processador precisou buscar o dado no HD).
+O int interruption foi criado para garantir que haja apenas uma interrupção ocorrendo, para que não tenhamos uma recursão infinita na nossa máquina.
+
+\begin{lstlisting}[caption={TAD Machine},label={lst:cod2},language=C]
+
+typedef struct {
+    Instruction* instructions;
+    RAM ram;
+    Cache l1; // cache L1
+    Cache l2; // cache L2
+    Cache l3; // cache L3
+    HD hd;
+    int hitL1, hitL2, hitL3, hitRAM, hitHD;
+    int missL1, missL2, missL3, missRAM;
+    int totalCost;
+    int interruption;
+} Machine;
+
+\end{lstlisting}
+
+\subsubsection{startHD e stopHD}
+
+Na função startHD modificamos a variável size que está no hd-$>$size para o size passado por parâmetro e alocamos dinamicamente o vetor de arquivos.
+Na estrutura de repetição for, criamos os arquivos e inicializamos eles com valores aleatórios.
+Na função stopHD simplesmente liberamos o vetor de arquivos que estava presente no hd.
+
+\begin{lstlisting}[caption={Funçao run},label={lst:cod3},language=C]
+void startHD(HD* hd, int size){
+    
+    hd->size = size;
+    hd->files = malloc (size * sizeof(File));
+
+    for(int i = 0; i < size; i++){
+        sprintf(hd->files[i].fileName, "0x0%d.txt", i);
+        // strcpy(, nomeArquivo);
+        hd->files[i].file = fopen(hd->files[i].fileName, "w");
+
+        fprintf(hd->files[i].file, "%d\n", WORDS_SIZE);
+
+
+        for (int j=0;j<WORDS_SIZE;j++){
+
+            fprintf(hd->files[i].file, "%d\n", rand() % 100);
+
+        }
+
+        fclose(hd->files[i].file);
+    }
+
+}
+
+void stopHD(HD* hd){
+    
+    free(hd->files);
+
+} 
+        
+\end{lstlisting}
+
+\subsubsection{start}
+
+Nessa função, iniciamos o valor do hitRam, hitHD e missRAM como 0. Além de adicionarmos o a função startHD.
+
+\begin{lstlisting}[caption={Funçao run},label={lst:cod3},language=C]
+    void start(Machine* machine, Instruction* instructions, int* memoriesSize) {
+        startRAM(&machine->ram, memoriesSize[0]);
+        startCache(&machine->l1, memoriesSize[1]);
+        startCache(&machine->l2, memoriesSize[2]);
+        startCache(&machine->l3, memoriesSize[3]);
+        startHD(&machine->hd, memoriesSize[4]);
+        machine->interruption = 0;
+    
+        machine->instructions = instructions;
+        machine->hitL1 = 0;
+        machine->hitL2 = 0;
+        machine->hitL3 = 0;
+        machine->hitRAM = 0;
+        machine->hitHD = 0;
+    
+        machine->missL1 = 0;
+        machine->missL2 = 0;
+        machine->missL3 = 0;
+        machine->hitRAM = 0;
+        machine->totalCost = 0;
+    }
+        
+        
+\end{lstlisting}
+
+\subsubsection{run}
+
+Inicializa o contador PC com valor 0 e, enquanto o opcode de machine-$>$instructions[PC] for diferente de -1 (condição de parada), printamos a quantidade de vezes que o processador achou (hit) o dado na L1, L2, L3, RAM e no HD, a quantidade de vezes que o processador precisou buscar o dado no HD (miss), e o custo total.
+
+\begin{lstlisting}[caption={Funçao run},label={lst:cod3},language=C]
+
+void run(Machine* machine) {    
+    int PC = 0; // Program Counter
+    while(machine->instructions[PC].opcode != -1) {
+        executeInstruction(machine, PC++);
+        printf("\tL1:(%6d, %6d) | L2:(%6d, %6d) | L3:(%6d, %6d) | RAM:(%6d, %6d) | HD:(%6d) | COST: %d\n", 
+            machine->hitL1, machine->missL1, 
+            machine->hitL2, machine->missL2,
+            machine->hitL3, machine->missL3,
+            machine->hitRAM, machine->missRAM,
+            machine->hitHD,
+             machine->totalCost);
+    }
+}
+    
+    
+\end{lstlisting}
+
+\subsubsection{printMemories}
+
+Aqui adicionamos uma linha a mais na tabela para representar cada bloco presente no HD.
+Printa as informações da RAM, se está atualizado é a cor verde e, se não, cor vermelha.
+
+\begin{lstlisting}[caption={Função printMemories},label={lst:cod4},language=C]
+    void printMemories(Machine* machine) {
+    printf("\x1b[0;30;47m     ");
+    printc("HD", WORDS_SIZE * 8 - 1);
+    printc("RAM", WORDS_SIZE * 8 - 1);
+    printc("Cache L3", WORDS_SIZE * 8 + 6);
+    printc("Cache L2", WORDS_SIZE * 8 + 6);
+    printc("Cache L1", WORDS_SIZE * 8 + 6);
+    printf("\x1b[0m\n");
+
+    MemoryBlock hd_block;
+
+    for (int i=0;i<machine->hd.size;i++) {
+        printf("\x1b[0;30;47m%5d|\x1b[0m", i);
+        hd_block = readHDblocks(&machine->hd.files[i]);
+
+        for (int j=0;j<WORDS_SIZE;j++)
+            printf(" %5d |", hd_block.words[j]);
+
+
+        if(i < machine->ram.size){
+            printf("|");
+            for (int j=0;j<WORDS_SIZE;j++)
+                printf(" %5d |", machine->ram.blocks[i].words[j]);
+
+            if (i < machine->l3.size) {
+                printf("|");
+                printcolored(machine->l3.lines[i].tag, machine->l3.lines[i].updated);
+                for (int j=0;j<WORDS_SIZE;j++)
+                        printf(" %5d |", machine->l3.lines[i].block.words[j]);
+
+                if (i < machine->l2.size) {
+                    printf("|");
+                    printcolored(machine->l2.lines[i].tag, machine->l2.lines[i].updated);
+                    for (int j=0;j<WORDS_SIZE;j++)
+                        printf(" %5d |", machine->l2.lines[i].block.words[j]);
+                    if (i < machine->l1.size) {
+                        printf("|");
+                        printcolored(machine->l1.lines[i].tag, machine->l1.lines[i].updated);
+                        for (int j=0;j<WORDS_SIZE;j++)
+                            printf(" %5d |", machine->l1.lines[i].block.words[j]);
+                    }
+                }
+            }
+
+        }
+
+        printf("\n");
+    }
+
+
+}
+    
+
+\end{lstlisting}
+\clearpage
+\subsubsection{readHDblocks}
+
+Lê os blocos de HD que estão salvos em um arquivo.txt e retorna uma palavra do tamanho definido no programa.
+
+\begin{lstlisting}[caption={startCache},label={lst:cod6},language=C]
+
+MemoryBlock readHDblocks(File *hd){
+
+    MemoryBlock block;
+
+    hd->file = fopen(hd->fileName, "r");
+
+    int words_size;
+    fscanf(hd->file, "%d", &words_size);
+
+    for(int i = 0; i < WORDS_SIZE; i++){
+        fscanf(hd->file, "%d", &block.words[i]);
+    }
+
+    fclose(hd->file);
+    return block;
+
+}
+
+\end{lstlisting}
+
+\subsubsection{memoryCacheMapping}
+
+Ela é responsável por checar qual tipo de mapeamento estamos utilizando e, dependendo do mapeamento,
+iremos aplicar uma política diferente. No caso do mapeamento direto, retornamos o possível endeeço da cache e a verificação
+de sua existência é feita no MMUSearchOnMemorys. No caso da LRU, percorremos o vetor sempre checando qual endereço está a mais tempo na cache
+e salvando seu índice, caso encontremos o endereço que procuramos retornamos seu índice, se a substituição vai acontecer ou não depende do MMUSearchOnMemorys.
+No LFU acontece a mesma coisa que o LRU, apenas mudando a condição de checagem para o bloco menos usado. 
+
+\begin{lstlisting}[caption={Função memoryCacheMapping},label={lst:cod6},language=C]
+
+    int memoryCacheMapping(int address, Cache* cache) {
+
+    int index = 0;
+
+    switch(SUBSTITUTION_METHOD){
+        //DIRECT MAPPING
+        case 1:
+            return address % cache->size;
+            break;
+        //LRU METHOD (Least Recently Used)
+        case 2:
+            cache->lines[0].timeOnCache++;
+            for( int i = 0; i < cache->size; i++){
+                
+                cache->lines[i].timeOnCache++;
+
+                if(cache->lines[i].timeOnCache > cache->lines[index].timeOnCache)
+                    index = i;
+                
+                if(cache->lines[i].tag == address)
+                    return i;
+
+            }
+            return index;
+            break;
+
+        //LFU METHOD (Least Frequently Used)
+        case 3:
+            for( int i = 0; i < cache->size; i++){
+                if(cache->lines[i].timesUsed < cache->lines[index].timesUsed)
+                    index = i;
+
+                if(cache->lines[i].tag == address)
+                    return i;
+            }
+
+            return index;
+            break;
+    }
+
+    return address % cache->size;
+}
+
+\end{lstlisting}
+
+\subsubsection{updateMachineInfos}
+
+Modificamos o valor do hitHD e do missRAM. Fazemos a alteração do custo total da máquina, tempo na cache e quantas vezes que foi usada.
+
+\begin{lstlisting}[caption={Função updateMachineInfos},label={lst:cod6},language=C]
+
+void updateMachineInfos(Machine* machine, Line* line) {
+
+    switch (line->cacheHit) {
+        case 1:
+            machine->hitL1 += 1;
+            break;
+
+        case 2:
+            machine->hitL2 += 1;
+            machine->missL1 += 1;
+            break;
+        
+        case 3:
+            machine->hitL3 += 1;
+            machine->missL1 += 1;
+            machine->missL2 += 1;
+            break;
+        
+        case 4:
+            machine->hitRAM += 1;
+            machine->missL1 += 1;
+            machine->missL2 += 1;
+            machine->missL3 += 1;
+            break;
+
+        case 5:
+            machine->hitHD += 1;
+            machine->missRAM += 1;
+            machine->missL1 += 1;
+            machine->missL2 += 1;
+            machine->missL3 += 1;
+            break;
+    }
+
+    line->timeOnCache = 0;
+    line->timesUsed++;
+
+    machine->totalCost += line->cost;
+}  
+
+\end{lstlisting}
+\clearpage
+
+\subsubsection{MMUSearchOnMemorys}
+
+Inicialmente, essa função pega a possível posição do bloco que queremos na CACHE e conferimos se o
+que queremos está realmente na RAM. Se estiver, atualizamos o cache hit referente aonde ele se encontra,
+o custo de acesso da memória, a nossa máquina e retornamos a linha que o endereço se encontra. Se não encontrarmos o 
+endereço na cache, fazemos as movimentações necessárias entre as memórias, levando em consideração o mapeamento
+escolhido e, caso precise, levamos o endereço da cache para RAM. Como proposto para o trabalho prático deveriamos ter adicionado
+uma verificação a mais. Caso o bloco desejado não esteja presente na RAM, deveriamos pegar essa informação do HD, que no nosso caso 
+é simulado por diferentes arquivos do tipo txt, cada um com o nome referente ao bloco. Depois de pegarmos o valor no HD, deveriamos 
+salvar ele na cache, sempre obedecendo o mapeamento escolhido.
+
+
+\begin{lstlisting}[caption={Função MMUSearchOnMemorys},label={lst:cod6},language=C]
+
+    Line* MMUSearchOnMemorys(Address add, Machine* machine) {
+        // Strategy => write back
+        
+        int l1pos = memoryCacheMapping(add.block, &machine->l1);
+        int l2pos = memoryCacheMapping(add.block, &machine->l2);
+        int l3pos = memoryCacheMapping(add.block, &machine->l3);
+    
+    
+        Line* cache1 = machine->l1.lines;
+        Line* cache2 = machine->l2.lines;
+        Line* cache3 = machine->l3.lines;
+    
+        MemoryBlock* RAM = machine->ram.blocks;
+    
+        if (cache1[l1pos].tag == add.block) { 
+            cache1[l1pos].cost = COST_ACCESS_L1;
+            cache1[l1pos].cacheHit = 1;
+        } else if (cache2[l2pos].tag == add.block) { 
+            /* Block is in memory cache L2 */
+            cache2[l2pos].tag = add.block;
+            cache2[l2pos].updated = false;
+            cache2[l2pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2;
+            cache2[l2pos].cacheHit = 2;
+    
+            updateMachineInfos(machine, &(cache2[l2pos]));
+    
+            return &(cache2[l2pos]);
+        } else if (cache3[l3pos].tag == add.block){
+            /* Block is in memory cache L3 */
+            cache3[l3pos].tag = add.block;
+            cache3[l3pos].updated = false;
+            cache3[l3pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3;
+            cache3[l3pos].cacheHit = 3;
+    
+            updateMachineInfos(machine, &(cache3[l3pos]));
+            return &(cache3[l3pos]);
+    
+        } else { 
+            /* Block only in memory RAM, need to bring it to cache and manipulate the blocks */
+            //fazer o mapeamento para decidir quem tirar da ram.
+            
+            if (!canOnlyReplaceBlock(cache1[l1pos])) { 
+                /* The block on cache L1 cannot only be replaced, the memories must be updated */
+                if (!canOnlyReplaceBlock(cache2[l2pos])){
+                    /* The block on cache L2 cannot only be replaced, the memories must be updated */
+                    if(!canOnlyReplaceBlock(cache3[l3pos])){
+                        /* The block on cache L2 cannot only be replaced, the memories must be updated */
+                        RAM[cache3[l3pos].tag] = cache3[l3pos].block;
+                    }
+                    cache3[l3pos] = cache2[l2pos];
+                    cache3[l3pos].timeOnCache = 0;
+    
+    
+                }
+    
+                cache2[l2pos] = cache1[l1pos];
+                cache2[l2pos].timeOnCache = 0;
+    
+            }
+    
+            
+            cache1[l1pos].block = RAM[add.block];
+            cache1[l1pos].timesUsed = 1;
+            cache1[l1pos].tag = add.block;
+            cache1[l1pos].updated = false;
+            cache1[l1pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3 + COST_ACCESS_RAM;
+            cache1[l1pos].timeOnCache = 0;
+            cache1[l1pos].cacheHit = 4;
+    
+    
+    
+        }
+        updateMachineInfos(machine, &(cache1[l1pos]));
+        return &(cache1[l1pos]);
+    }
+
+\end{lstlisting}
+
+\clearpage
+
+\subsection{Função Main}
+
+Na função main adicionamos mais um espaço a memoriesSize para o HD
+
+\begin{lstlisting}[caption={Main},label={lst:cod6},language=C]
+    int main(int argc, char**argv) {
+
+        srand(1507);   // Inicializacao da semente para os numeros aleatorios.
+
+        if (argc != 6) {
+            printf("Numero de argumentos invalidos! Sao 6.\n");
+            printf("Linha de execucao: ./exe TIPO_INSTRUCAO [TAMANHO_RAM|ARQUIVO_DE_INSTRUCOES] TAMANHO_L1 TAMANHO_L2 TAMANHO_L3\n");
+            printf("\tExemplo 1 de execucao: ./exe random 10 2 4 6\n");
+            printf("\tExemplo 2 de execucao: ./exe file arquivo_de_instrucoes.txt\n");
+            return 0;
+        }
+
+        int memoriesSize[4];
+        Machine machine;
+        Instruction *instructions;
+
+        memoriesSize[1] = atoi(argv[3]);
+        memoriesSize[2] = atoi(argv[4]);
+        memoriesSize[3] = atoi(argv[5]);
+
+
+        if (strcmp(argv[1], "random") == 0) {
+            memoriesSize[0] = atoi(argv[2]);
+            instructions = generateRandomInstructions(memoriesSize[0]);
+        } else if (strcmp(argv[1], "file") == 0) {
+            instructions = readInstructions(argv[2], memoriesSize);
+        } 
+        else {
+            printf("Invalid option.\n");
+            return 0;
+        }
+        
+        printf("Starting machine...\n");
+        start(&machine, instructions, memoriesSize);
+        if (memoriesSize[0] < 10)
+            printMemories(&machine);
+        run(&machine);
+        if (memoriesSize[0] < 10)
+            printMemories(&machine);
+        stop(&machine);
+        printf("Stopping machine...\n");
+        return 0;
+    }
+\end{lstlisting}
+\clearpage
+
+
+\section{Impressões Gerais}
+Primeiramente, nos reunimos no discord para a leitura e compreensão do documento disponibilizado para a realização do trabalho.
+Foi bem difícil compreender como era pra ser feito esse trabalho, a parte de realizar a interrupção foi ainda mais díficil pois não tivemos conteúdo o 
+suficiente para nos basear e "ter um norte" para começar o trabalho. A simulação de um HD também trouxe dificuldades, faltou uma ideia boa de como ocorreria essa implementação, 
+e acabamos ficando perdidos sobre a implementação. Vale lembrar que infelizmente faltou um pouco de tempo, considerando que esse periodo da UFOP foi mais corrido que o normal,
+havendo uma sobrecarga de atividades. Por isso devido a complexidade das funções a serem implementadas e pela falta de material para pesquisa acabamos deixando a desejar em alguns aspectos como
+a implementação do MMUSearchOnMemorys com o HD.
+\clearpage
+\section{Análise}
+
+Tivemos uma ideia boa de como deveria ocorrer a implementação do HD, chegamos a realizar a montagem inicial do TAD e dos parâmetros necessários para a implementação
+do HD. Além disso criamos os arquivos para simular o acesso em memória externa, assim como ter uma ideia da lentidão da memória externa(comumente conhecida como SWAP em sistemas UNIX),
+juntamente com um tratador de interrupções, que se prova extremamente util, especialmente em sistemas operacionais, porque sempre haverá algumas tarefas com prioridades maiores a serem executadas.
+
+\subsection{Análise de Complexidade}
+Na função memoryCacheMapping, a sua complexidade vai depender do método de mapeamento escolhido. Para o mapeamento direto, 
+como não percorremos o vetor, já que a posição na cache depende unicamente do final de seu endereço, 
+sua complexidade será $\mathcal{O}(1)$. \\
+
+Na política LRU, na função memoryCacheMapping, percorremos o vetor para encontrar o bloco que está a mais tempo sem ser utilizado, por isso 
+teremos uma complexidade de $\mathcal{O}(n)$. \\
+
+Na política LFU, na memoryCacheMapping, também percorremos o vetor para encontrar o bloco que está a mais tempo sem ser utilizado, por isso 
+teremos uma complexidade de $\mathcal{O}(n)$.
+
+\clearpage
+\section{Conclusão}
+Dentro do possível o trabalho apresentou uma didática interessantes, nos fornecendo um jeito mais palpável
+de aprender conceitos intrisicos a um sistema operacional. Porem algumas coisas deixaram a desejar, sendo a principal o material fornecido para 
+podermos realizar o trabalho e o prazo, que entendemos que não seja culpa apenas do professor, mas também do calendário acadêmico. Com isso a parte que conseguimos
+finalizar do trabalho nos deu uma excelente ideia do funcionamento e como computadores são organizados desde o conceito mais básico, como uma simples instrução de soma, até
+ao conceito de interupções e armazenamento, tanto interno quanto externo. Sendo uma disciplina extremamente proveitosa e que irá agregar para a nossa bagagem como profissionais.
+
+
+\end{document}

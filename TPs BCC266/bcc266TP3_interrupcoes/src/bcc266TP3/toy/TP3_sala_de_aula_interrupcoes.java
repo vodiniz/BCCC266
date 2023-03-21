@@ -13,8 +13,8 @@ public class TP3_sala_de_aula_interrupcoes {
 		final int tamanhoRam=1000;// quantidade de blocos => 4k palavras
 		final int tamanhoCache1 = 32; // quantidade de blocos => 32 palavras
 		final int tamanhoCache2 = 64; // quantidade de blocos => 64 palavras
-		final int tamanhoPrograma = 10001;//qde de instruções
-		final int tamanhoProgramaTI = 101;//qde de instruções tratador de interrupções
+		final int tamanhoPrograma = 10001;//qde de instruï¿½ï¿½es
+		final int tamanhoProgramaTI = 101;//qde de instruï¿½ï¿½es tratador de interrupï¿½ï¿½es
 		final int qdePalavrasBloco = 4;
 		
 		Instrucao[] memoriaInstrucoes;
@@ -22,7 +22,7 @@ public class TP3_sala_de_aula_interrupcoes {
 		BlocoMemoria[] cache1 = new BlocoMemoria[tamanhoCache1];
 		BlocoMemoria[] cache2 = new BlocoMemoria[tamanhoCache2];
 		
-		List<String> pilhaInterrupções = new LinkedList<String>();
+		List<String> pilhaInterrupcoes = new LinkedList<String>();
 		
 		int custo=0;
 		//caches 1 e 2 Hit e miss
@@ -99,20 +99,20 @@ public class TP3_sala_de_aula_interrupcoes {
 						missC2++;					
 					}
 					
-					System.out.println("Custo até o momento do programa em execução: " + custo);
-					System.out.println("Hits e Misses até o momento - C1 hit | C1 miss | C2 hit | C2 miss: " + hitC1+ " | "+ missC1 + " | "+hitC2 + " | "+ missC2);
+					System.out.println("Custo atï¿½ o momento do programa em execuï¿½ï¿½o: " + custo);
+					System.out.println("Hits e Misses atï¿½ o momento - C1 hit | C1 miss | C2 hit | C2 miss: " + hitC1+ " | "+ missC1 + " | "+hitC2 + " | "+ missC2);
 					
 					switch (opcode){
 						//levar para cache1 dados externos
 						case 0:{
-							System.out.println("Levando dados para cache e gerando uma interrupção para isto !!! ");
-							//gerar 1 ou n interrupções no barramento
+							System.out.println("Levando dados para cache e gerando uma interrupï¿½ï¿½o para isto !!! ");
+							//gerar 1 ou n interrupï¿½ï¿½es no barramento
 							//salvar na pilha de interrupcoes
 							
 							if(programa.equals("programa")){
 								int seed = r.nextInt(3);
 								for (int i=0; i<seed; i++)
-									pilhaInterrupções.add("Interrupcao a ser tratada - dispositivo teclado");
+								pilhaInterrupcoes.add("Interrupcao a ser tratada - dispositivo teclado");
 							}											
 							break;
 						}
@@ -150,9 +150,9 @@ public class TP3_sala_de_aula_interrupcoes {
 					PC++;
 				}//end if
 				
-				//retiram da pilha uma interrupção
-				if(programa.equals("programa") && !pilhaInterrupções.isEmpty()){
-					pilhaInterrupções.remove(0);//removendo uma interrupção para ser tratada
+				//retiram da pilha uma interrupï¿½ï¿½o
+				if(programa.equals("programa") && !pilhaInterrupcoes.isEmpty()){
+					pilhaInterrupcoes.remove(0);//removendo uma interrupï¿½ï¿½o para ser tratada
 					System.out.println();
 					System.out.println("INICIO - TRATADOR DE INTERRUPCAO");
 					montarInstrucaoGerador("tratador_interrupcao", tamanhoProgramaTI);
@@ -167,7 +167,7 @@ public class TP3_sala_de_aula_interrupcoes {
 			
 			System.out.println("Custo total do programa: " + custo);
 			System.out.println("Hits e Misses do programa - C1 hit | C1 miss | C2 hit | C2 miss: " + hitC1+ " | "+ missC1 + " | "+hitC2 + " | "+ missC2);
-			System.out.println("Interrupcoes ainda não tratadas: " + pilhaInterrupções.size());
+			System.out.println("Interrupcoes ainda nï¿½o tratadas: " + pilhaInterrupcoes.size());
 			
 		}
 		
@@ -175,7 +175,7 @@ public class TP3_sala_de_aula_interrupcoes {
 		private void montarCacheVazia(int tamanho, BlocoMemoria[] qqCache){
 			for(int i=0; i<tamanho; i++){
 				BlocoMemoria aux = new BlocoMemoria();
-				//forçando cache estar vazia
+				//forï¿½ando cache estar vazia
 				aux.setEndBloco(Integer.MIN_VALUE);
 				
 				qqCache[i] = aux;

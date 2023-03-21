@@ -21,7 +21,6 @@ int memoryCacheMapping(int address, Cache* cache) {
             break;
         //LRU METHOD (Least Recently Used)
         case 2:
-            cache->lines[0].timeOnCache++;
             for( int i = 0; i < cache->size; i++){
                 
                 cache->lines[i].timeOnCache++;
@@ -75,6 +74,14 @@ void updateMachineInfos(Machine* machine, Line* line) {
         
         case 4:
             machine->hitRAM += 1;
+            machine->missL1 += 1;
+            machine->missL2 += 1;
+            machine->missL3 += 1;
+            break;
+
+        case 5:
+            machine->hitHD += 1;
+            machine->missRAM += 1;
             machine->missL1 += 1;
             machine->missL2 += 1;
             machine->missL3 += 1;
@@ -152,6 +159,7 @@ Line* MMUSearchOnMemorys(Address add, Machine* machine) {
 
         
         cache1[l1pos].block = RAM[add.block];
+        cache1[l1pos].timesUsed = 1;
         cache1[l1pos].tag = add.block;
         cache1[l1pos].updated = false;
         cache1[l1pos].cost = COST_ACCESS_L1 + COST_ACCESS_L2 + COST_ACCESS_L3 + COST_ACCESS_RAM;

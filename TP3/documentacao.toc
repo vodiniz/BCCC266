@@ -1,0 +1,25 @@
+\babel@toc {brazilian}{}\relax 
+\contentsline {section}{\numberline {1}Introdução}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Especificações do problema}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Considerações Iniciais}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Ferramentas utilizadas}{1}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Especificações da máquina}{1}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Instruções de compilação e execução}{1}{subsection.1.5}%
+\contentsline {section}{\numberline {2}Desenvolvimento}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Operações}{3}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Médodos de mapeamento}{3}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}TAD File e TAD HD}{3}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}TAD Machine}{3}{subsubsection.2.1.3}%
+\contentsline {subsubsection}{\numberline {2.1.4}startHD e stopHD}{4}{subsubsection.2.1.4}%
+\contentsline {subsubsection}{\numberline {2.1.5}start}{4}{subsubsection.2.1.5}%
+\contentsline {subsubsection}{\numberline {2.1.6}run}{5}{subsubsection.2.1.6}%
+\contentsline {subsubsection}{\numberline {2.1.7}printMemories}{5}{subsubsection.2.1.7}%
+\contentsline {subsubsection}{\numberline {2.1.8}readHDblocks}{7}{subsubsection.2.1.8}%
+\contentsline {subsubsection}{\numberline {2.1.9}memoryCacheMapping}{7}{subsubsection.2.1.9}%
+\contentsline {subsubsection}{\numberline {2.1.10}updateMachineInfos}{8}{subsubsection.2.1.10}%
+\contentsline {subsubsection}{\numberline {2.1.11}MMUSearchOnMemorys}{10}{subsubsection.2.1.11}%
+\contentsline {subsection}{\numberline {2.2}Função Main}{12}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Impressões Gerais}{13}{section.3}%
+\contentsline {section}{\numberline {4}Análise}{14}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Análise de Complexidade}{14}{subsection.4.1}%
+\contentsline {section}{\numberline {5}Conclusão}{15}{section.5}%
